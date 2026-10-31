@@ -104,3 +104,77 @@ document.addEventListener('selectstart', e => {
     e.preventDefault();
   }
 });
+
+
+
+
+
+
+const track = document.getElementById("track");
+const original = track.querySelector(".track-content");
+
+const speed = 50; // pixels per second
+
+let position = 0;
+let lastTime = 0;
+let loopWidth = 0;
+
+function setupTrack() {
+    // Keep the original content
+    track.innerHTML = "";
+    track.appendChild(original);
+
+    const screenWidth = window.innerWidth;
+    const contentWidth = original.getBoundingClientRect().width;
+
+    if (contentWidth === 0) return;
+
+    // Enough copies to cover the screen plus one extra
+    const copies = Math.ceil(screenWidth / contentWidth) + 2;
+
+    for (let i = 1; i < copies; i++) {
+        track.appendChild(original.cloneNode(true));
+    }
+
+    loopWidth = contentWidth;
+
+    // Start one copy to the left
+    track.style.transform = `translate3d(${-loopWidth + position}px, 0, 0)`;
+}
+
+function animate(time) {
+    if (lastTime !== 0 && loopWidth > 0) {
+        const delta = (time - lastTime) / 1000;
+
+        position = (position + speed * delta) % loopWidth;
+
+        track.style.transform =
+            `translate3d(${-loopWidth + position}px, 0, 0)`;
+    }
+
+    lastTime = time;
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener("resize", setupTrack);
+
+setupTrack();
+requestAnimationFrame(animate);
+
+
+
+
+document.querySelectorAll(".ripple").forEach(button => {
+    button.addEventListener("click", event => {
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const circle = document.createElement("span");
+
+        circle.style.width = circle.style.height = size + "px";
+        circle.style.left = event.clientX - rect.left - size / 2 + "px";
+        circle.style.top = event.clientY - rect.top - size / 2 + "px";
+
+        button.appendChild(circle);
+        circle.addEventListener("animationend", () => circle.remove());
+    });
+});
